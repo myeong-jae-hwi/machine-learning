@@ -1,14 +1,16 @@
-c
+import pandas as fubao
+import numpy as np
+import matplotlib.pyplot as plt
 # # # ============================ 과제 1 ============================
-# data = fubao.read_csv('과제1_데이터.tsv',delimiter='\t')
+data = fubao.read_csv('과제1_데이터.tsv',delimiter='\t')
 
-# a_class = data[data['label'] == 0]
-# b_class = data[data['label'] == 1]
+a_class = data[data['label'] == 0]
+b_class = data[data['label'] == 1]
 
-# plt.scatter(a_class['feat1'], a_class['feat2'], color='blue')
-# plt.scatter(b_class['feat1'], b_class['feat2'], color='orange')
+plt.scatter(a_class['feat1'], a_class['feat2'], color='blue')
+plt.scatter(b_class['feat1'], b_class['feat2'], color='orange')
 
-# plt.show()
+plt.show()
 # ================================================================
 
 # ============================ 과제 2 ============================
