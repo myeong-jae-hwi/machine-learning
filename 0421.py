@@ -29,6 +29,8 @@
 # ==================================================================
 import numpy as np
 import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings('ignore')
 
 def read_data(file_name):
     data = np.loadtxt(file_name)
@@ -40,18 +42,28 @@ def sigmoid(num):
 def log_loss(y, prediction):
     return -np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
 
-def train_logistic_regression(X, y, epochs, learning_rate,threshold_values):
+
+def train_logistic_regression(X, y, epochs, learning_rate,threshold_values, validX, validY):
     # 매개변수 초기화
     a, b, c, d = np.random.rand(4)
     best_acc = 0
     bestthreshold = None
     acc_arr = []
+
+    
     
     for threshold in threshold_values:
         for epoch in range(epochs):
+            acc_arr_test = []  # 훈련 손실 값 저장 리스트
+            acc_arr_valid = []  # 검증 손실 값 저장 리스트
             # 모델 
             z = a * X[:, 0] + b * X[:, 1] + c * X[:, 2] + d
             prediction = sigmoid(z)
+
+            z_valid = a * validX[:, 0] + b * validX[:, 1] + c * validX[:, 2] + d
+            prediction_valid = sigmoid(z_valid)
+
+            loss_valid = log_loss(validY, prediction_valid)
             
             # 그래디언트 계산
             gradient_a = np.mean((prediction - y) * X[:, 0])
@@ -65,16 +77,29 @@ def train_logistic_regression(X, y, epochs, learning_rate,threshold_values):
             c -= learning_rate * gradient_c
             d -= learning_rate * gradient_d
 
-        print(f"파라미터 업데이트 과정 :[{threshold}] ",round(a,2), round(b,2), round(c,2), round(d,2))
-        
+            predictions_valid = sigmoid(z_valid) >= 0.65
 
+            # acc 구하는 부분
+            predictions = prediction >= 0.65
+            acc = round(np.mean(predictions == y),3)
+            acc_arr.append((threshold, acc))
+
+            # print(f"test acc : {acc}")
+            # print(f"test Loss: {round((1 - acc),2)}")
+
+            accuracy_valid = round(np.mean(predictions_valid == validY),2)
+            # print(f"valid acc: {accuracy_valid}")
+            # print(f"valid Loss: {round((1 - accuracy_valid),2)}")
+            acc_arr_valid.append((threshold, (1-accuracy_valid)))
+            acc_arr_test.append((threshold, (1 - acc)))
+
+            # plt.figure(figsize=(12, 6))
+            plt.plot(round((1 - acc),2), label='test loss')
+            plt.plot(round((1 - accuracy_valid),2), label='valid loss')
             
-        # 정확도 계산
-        predictions = prediction >= 0.65
-        acc = round(np.mean(predictions == y),3)
-        acc_arr.append((threshold, acc))
-
-        print(f"acc : {acc}")
+    
+        print(f"파라미터 업데이트 과정 :[{threshold}] ",round(a,2), round(b,2), round(c,2), round(d,2))
+        z_valid = a * validX[:, 0] + b * validX[:, 1] + c * validX[:, 2] + d
         
         if acc > best_acc:
             best_acc = acc
@@ -91,7 +116,14 @@ def train_logistic_regression(X, y, epochs, learning_rate,threshold_values):
     # FN = 빨간색이라고 예측했는데 파란색 (경계 아래에 있는 파란색)
     print(f"TP: {TP}, TN: {TN}, FP: {FP}, FN: {FN}")
     print(f"2 -3 : 혼동행렬을 그린 뒤 각각의 값을 나타내라. recall :{round(TP / (TP + FN),2)}, acc :{((TP + TN) / 600)}, precision :{round((TP/(TP+FP)),2)}")
-    
+    print(f"Validation Loss: {loss_valid}")
+    print(len(acc_arr_test))
+
+    plt.plot(acc_arr_test, label='test loss')
+    plt.plot(acc_arr_valid, label='valid loss')
+    plt.legend()
+    plt.show()
+
     return bestthreshold, best_acc, acc_arr, round(a,2), round(b,2), round(c,2), round(d,2)
 
 # 파일에서 데이터 읽기
@@ -100,30 +132,17 @@ validdata = read_data("valid2.txt")
 sumdata = read_data("test2.txt")
 X = testdata[:, :3]
 y = testdata[:, 3]
+validX = validdata[:, :3]
+validY = validdata[:, 3]
 
 # 학습 파라미터 설정
 epochs = 5000
 learning_rate = 0.01 
 threshold_values = np.linspace(0.1, 1, 10)
 
-bestthreshold, best_acc, acc_arr, a, b, c, d = train_logistic_regression(X, y, epochs, learning_rate,threshold_values)
-
-X_valid = validdata[:, :3]
-y_valid = validdata[:, 3]
-
-# 검증 데이터셋에 대한 예측 수행
-z_valid = a * X_valid[:, 0] + b * X_valid[:, 1] + c * X_valid[:, 2] + d
-predictions_valid = sigmoid(z_valid) >= bestthreshold  # bestthreshold는 최적의 임계값
-
-# 검증 데이터셋에 대한 평가 수행
-accuracy_valid = np.mean(predictions_valid == y_valid)
-print(f"Validation Set Accuracy: {accuracy_valid}")
+bestthreshold, best_acc, acc_arr, a, b, c, d = train_logistic_regression(X, y, epochs, learning_rate,threshold_values, validX, validY)
 
 print(f"Best ξ: {bestthreshold}, Best Accuracy: {best_acc}")
-# print(a, b, c, d)
-# for threshold, acc in acc_arr:
-#     print(f"ξ: {threshold}, Accuracy: {acc}, a:{a}, b:{b}, c:{c}, d:{d}")
-    
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
