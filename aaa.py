@@ -29,7 +29,6 @@ def train_logistic_regression(X_train, y_train, X_valid, y_valid, epochs, learni
             z_valid = a * X_valid[i, 0] + b * X_valid[i, 1] + c * X_valid[i, 2] + d
             prediction_valid = sigmoid(z_valid)
             
-            
             loss_train = log_loss(y_point, prediction_train)
             train_losses.append(loss_train)
           
@@ -59,8 +58,7 @@ y_train = testdata[:, 3]
 X_valid = validdata[:, :3]
 y_valid = validdata[:, 3]
 
-# 학습 파라미터 설정
-epochs = 100  # 온라인 학습에서는 1 에포크로 설정
+epochs = 100
 learning_rate = 0.1
 
 # 학습 및 매개변수 추출
@@ -72,6 +70,84 @@ plt.plot(train_losses, label='Train Loss')
 plt.plot(valid_losses, label='Valid Loss')
 plt.title('Loss Graph')
 plt.show()
+
+# import numpy as np
+# import matplotlib.pyplot as plt
+
+# def read_data(file_name):
+#     data = np.loadtxt(file_name)
+#     return data
+
+# def sigmoid(num):
+#     return 1 / (1 + np.exp(-num))
+
+# def log_loss(y, prediction):
+#     return -np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
+
+# def log_loss(a, b, c):
+#     z = (a * feat1) + (b * feat2) + c
+#     hz = logistic_function(z)
+#     return -np.mean(label * np.log(hz) + (1 - label) * np.log(1 - hz))
+
+# def train_logistic_regression(X_train, y_train, X_valid, y_valid, epochs, learning_rate):
+#     a, b, c, d = np.random.rand(4)
+#     train_losses = []
+#     valid_losses = []
+    
+#     for epoch in range(epochs):
+#         # 훈련 데이터에 대한 예측
+#         z_train = np.dot(X_train, [a, b, c]) + d
+#         prediction_train = sigmoid(z_train)
+        
+#         # 검증 데이터에 대한 예측
+#         z_valid = np.dot(X_valid, [a, b, c]) + d
+#         prediction_valid = sigmoid(z_valid)
+        
+#         # 손실 계산
+#         loss_train = log_loss(y_train, prediction_train)
+#         train_losses.append(loss_train)
+        
+#         loss_valid = log_loss(y_valid, prediction_valid)
+#         valid_losses.append(loss_valid)
+        
+#         # 그래디언트 계산
+#         gradient_a = np.mean((prediction_train - y_train) * X_train[:, 0])
+#         gradient_b = np.mean((prediction_train - y_train) * X_train[:, 1])
+#         gradient_c = np.mean((prediction_train - y_train) * X_train[:, 2])
+#         gradient_d = np.mean(prediction_train - y_train)
+        
+#         # 매개변수 업데이트
+#         a -= learning_rate * gradient_a
+#         b -= learning_rate * gradient_b
+#         c -= learning_rate * gradient_c
+#         d -= learning_rate * gradient_d
+                        
+#     return a, b, c, d, train_losses, valid_losses
+
+# # 데이터 읽기
+# testdata = read_data("test2.txt")
+# validdata = read_data("valid2.txt")
+# X_train = testdata[:, :3]
+# y_train = testdata[:, 3]
+
+# X_valid = validdata[:, :3]
+# y_valid = validdata[:, 3]
+
+# # 학습 파라미터 설정
+# epochs = 100  # 온라인 학습에서는 1 에포크로 설정
+# learning_rate = 0.1
+
+# # 학습 및 매개변수 추출
+# a, b, c, d, train_losses, valid_losses = train_logistic_regression(X_train, y_train, X_valid, y_valid, epochs, learning_rate)
+
+# # 손실 그래프 시각화
+# plt.figure(figsize=(12, 6))
+# plt.plot(train_losses, label='Train Loss')
+# plt.plot(valid_losses, label='Valid Loss')
+# plt.title('Loss Graph')
+# plt.legend()
+# plt.show()
+
 
 
 # import numpy as np
