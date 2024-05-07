@@ -43,17 +43,17 @@ def log_loss(y, prediction):
     return -np.mean(y * np.log(prediction) + (1 - y) * np.log(1 - prediction))
 
 
-def train_logistic_regression(X, y, epochs, learning_rate,threshold_values, validX, validY):
+def train_logistic_regression(X, y, epochs, learning_rate,step_values, validX, validY):
     # 매개변수 초기화
     a, b, c, d = np.random.rand(4)
     best_acc = 0
-    bestthreshold = None
+    beststep = None
     acc_arr = []
     acc_arr_test = []  # 훈련 손실 값 저장 리스트
     acc_arr_valid = []  # 검증 손실 값 저장 리스트
     abcd_arr = []
     
-    for threshold in threshold_values:
+    for step in step_values:
         for epoch in range(epochs):
             # 모델 
             z = a * X[:, 0] + b * X[:, 1] + c * X[:, 2] + d
@@ -81,7 +81,7 @@ def train_logistic_regression(X, y, epochs, learning_rate,threshold_values, vali
             # acc 구하는 부분
             predictions = prediction >= 0.65
             acc = round(np.mean(predictions == y),3)
-            acc_arr.append((threshold, acc))
+            acc_arr.append((step, acc))
 
             # print(f"test acc : {acc}")
             # print(f"test Loss: {round((1 - acc),2)}")
@@ -91,12 +91,12 @@ def train_logistic_regression(X, y, epochs, learning_rate,threshold_values, vali
             acc_arr_valid.append((1 - accuracy_valid))
             acc_arr_test.append((1 - acc))
     
-        print(f"파라미터 업데이트 과정 :[{threshold}] ",round(a,2), round(b,2), round(c,2), round(d,2))
+        print(f"파라미터 업데이트 과정 :[{step}] ",round(a,2), round(b,2), round(c,2), round(d,2))
         z_valid = a * validX[:, 0] + b * validX[:, 1] + c * validX[:, 2] + d
 
         if acc > best_acc:
             best_acc = acc
-            bestthreshold = threshold
+            beststep = step
 
     TN = np.sum((y == 0) & (predictions == 0))
     TP = np.sum((y == 1) & (predictions == 1))
@@ -118,11 +118,11 @@ def train_logistic_regression(X, y, epochs, learning_rate,threshold_values, vali
     for i in range(1, len(acc_arr_valid)):
         if acc_arr_valid[i] > acc_arr_valid[i-1]: 
             plt.axvline(x=i, color='green', linestyle='--')
-            print(f"증가 지점 {i}의 파라미터: a={abcd_arr[i][0]:.2f}, b={abcd_arr[i][1]:.2f}, c={abcd_arr[i][2]:.2f}, d={abcd_arr[i][3]:.2f}")
+            print(f"파라미터: a={round(abcd_arr[i][0],2)}, b={round(abcd_arr[i][1],2)}, c={round(abcd_arr[i][2],2)}, d={round(abcd_arr[i][3],2)}")
 
     plt.show()
 
-    return bestthreshold, best_acc, acc_arr, round(a,2), round(b,2), round(c,2), round(d,2)
+    return beststep, best_acc, acc_arr, round(a,2), round(b,2), round(c,2), round(d,2)
 
 # 파일에서 데이터 읽기
 testdata = read_data("test2.txt")
@@ -135,11 +135,11 @@ validY = validdata[:, 3]
 # 학습 파라미터 설정
 epochs = 500
 learning_rate = 0.01 
-threshold_values = np.linspace(0.1, 1, 10)
+step_values = np.linspace(0.1, 1, 10)
 
-bestthreshold, best_acc, acc_arr, a, b, c, d = train_logistic_regression(X, y, epochs, learning_rate,threshold_values, validX, validY)
+beststep, best_acc, acc_arr, a, b, c, d = train_logistic_regression(X, y, epochs, learning_rate,step_values, validX, validY)
 
-print(f"Best ξ: {bestthreshold}, Best Accuracy: {best_acc}")
+print(f"Best ξ: {beststep}, Best Accuracy: {best_acc}")
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
