@@ -275,6 +275,7 @@ def decision_tree(train_data, next_data=None, threshold=0.98, count=0):
         f3_left_impurity = 1 - np.max(f3_left_class_counts) / len(f3_left_labels)
         f3_right_impurity = 1 - np.max(f3_right_class_counts) / len(f3_right_labels)
         f3_impurity = (f3_left_impurity + f3_right_impurity) / 2
+        
 
         impurity.append([f1_impurity, f2_impurity, f3_impurity])
 
