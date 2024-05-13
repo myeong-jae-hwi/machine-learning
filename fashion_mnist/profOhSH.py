@@ -22,6 +22,7 @@ y_test = np.load('y_test.npy')
 #             axes[row, col].axis('off')
 #         plt.show()
 
+# ====================== 데이터 train이랑 valid 나누는 부분 ======================
 def split_data(x_train, y_train, x_test, y_test):
   train_unique_labels = np.unique(y_train)  # [0 1 2 3 4 5 6 7 8 9]
   test_unique_labels = np.unique(y_test)  # [0 1 2 3 4 5 6 7 8 9]
@@ -43,6 +44,7 @@ def split_data(x_train, y_train, x_test, y_test):
   return x_train_data, y_train_data, x_valid_data, y_valid_data, x_test_data, y_test_data
 x_train_data, y_train_data, x_valid_data, y_valid_data, x_test_data, y_test_data = split_data(x_train, y_train, x_test, y_test)
 
+# ====================== 데이터 시각화 부분 (매개변수에 넣은거 전체) ======================
 def plot_images_per_class(data, num_images_per_class=10):
     total_images = len(data)
     num_full_windows = total_images // (10 * num_images_per_class)
@@ -69,7 +71,7 @@ def plot_images_per_class(data, num_images_per_class=10):
 
         plt.show()
 
-
+# ====================== 신발 클래스를 분류하고 싶었지만 부츠만 댐 ㅋㅋ =================================
 def shoes_class(data):
     class_A = []
     class_shoes = []
