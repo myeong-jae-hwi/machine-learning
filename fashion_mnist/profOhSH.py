@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
 
 x_train = np.load('x_train.npy')
 y_train = np.load('y_train.npy')
@@ -21,6 +22,8 @@ y_test = np.load('y_test.npy')
 #             axes[row, col].imshow(label_data[i])
 #             axes[row, col].axis('off')
 #         plt.show()
+
+# plot_images_per_label(x_train, y_train)
 
 # ====================== 데이터 train이랑 valid 나누는 부분 ======================
 def split_data(x_train, y_train, x_test, y_test):
@@ -68,7 +71,6 @@ def plot_images_per_class(data, num_images_per_class=10):
             for j in range(len(class_data)):
                 axes[j, i].imshow(class_data[j])
                 axes[j, i].axis('off')
-
         plt.show()
 
 # ====================== 신발 클래스를 분류하고 싶었지만 부츠만 댐 ㅋㅋ =================================
@@ -77,12 +79,12 @@ def shoes_class(data):
     class_shoes = []
 
     for img in data:
-        # Step 3: 데이터의 x축 기준 중간에 수직선을 그어 좌, 우의 0이 아닌 픽셀수를 검사
+        # 데이터의 x축 기준 중간에 수직선을 그어 좌, 우의 0이 아닌 픽셀수를 검사
         mid_x = img.shape[1] // 2
         left_pixels = np.count_nonzero(img[:, :mid_x])
         right_pixels = np.count_nonzero(img[:, mid_x:])
         
-        # Step 4: 픽셀 수가 비슷하다면 class A에 저장, 그렇지 않다면 class_shoes에 저장
+        # 픽셀 수가 비슷하다면 class A에 저장, 그렇지 않다면 class_shoes에 저장
         if abs(left_pixels - right_pixels) < 80:
             class_A.append(img)
         else:
@@ -90,7 +92,67 @@ def shoes_class(data):
 
     return class_A, class_shoes
   
-class_A, class_shoes = shoes_class(x_train_data)
-print(np.shape(class_shoes))
-plot_images_per_class(class_shoes)
+# =========================== 슬리퍼 분류 (넓이가 쓰레쉬보다 작을때) ===================================
+def sandle_class(data):    
+    # 샌들 클래스 분류
+    adaptive_thresh_images = [cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 35, 2) for img in data]
+    # plot_images_per_class(adaptive_thresh_images)
+
+# =========================== 신발 분류 ==========================
+def sneakers_class(data, y_train):
+    sneakers = []
+    class_B = []
+    sneakers_labels = []
+
+    for img, label in zip(data, y_train):
+        # 이미지의 높이와 너비를 가져옴
+        height, width = img.shape[:2]
+        top = 3
+        bottom = 3
+
+        # 이미지의 상단과 하단에서 10픽셀씩 잘라냄
+        top_pixels = img[:top, :]
+        bottom_pixels = img[height-bottom:, :]
+        
+        # 상단과 하단의 열이 모두 비어있으면 sneakers로 분류
+        if np.sum(top_pixels) == 0 and np.sum(bottom_pixels) == 0:
+            sneakers.append(img)
+            sneakers_labels.append(label)
+        else:
+            class_B.append(img)
+
+    sneakers=np.array(sneakers)
+    sneakers_labels = np.array(sneakers_labels)
+    class_B = np.array(class_B)
+
+    return sneakers, sneakers_labels, class_B
+
+
+# print(np.shape(class_shoes))
+# plot_images_per_class(class_A)
+
+sneakers, sneakers_label, class_B = sneakers_class(x_train_data, y_train_data)
+class_A, class_shoes = shoes_class(class_B)
+
+# print(np.shape(sneakers))
+# print(np.shape(class_shoes))
+# plot_images_per_class(class_A)
+
+
+# ========================== 인식기 ==========================
+from sklearn.neural_network import MLPClassifier
+from sklearn.metrics import accuracy_score
+
+# MLPClassifier 초기화, hidden_layer_sizes를 제외한 다른 매개변수는 모두 기본값으로 설정됩니다.
+mlp_model = MLPClassifier()
+
+# MLPClassifier 모델에 데이터를 학습
+mlp_model.fit(np.array(sneakers).reshape(len(sneakers), -1), sneakers_label)
+
+# 테스트 데이터에 대해 예측
+y_pred_mlp = mlp_model.predict(x_test.reshape(len(x_test), -1))
+
+# 정확도 측정
+accuracy_mlp = accuracy_score(y_test, y_pred_mlp)
+print("MLPClassifier Accuracy:", accuracy_mlp)
 
