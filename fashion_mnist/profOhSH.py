@@ -107,8 +107,8 @@ def sneakers_class(data, y_train):
     for img, label in zip(data, y_train):
         # 이미지의 높이와 너비를 가져옴
         height, width = img.shape[:2]
-        top = 3
-        bottom = 3
+        top = 2
+        bottom = 2
 
         # 이미지의 상단과 하단에서 10픽셀씩 잘라냄
         top_pixels = img[:top, :]
@@ -127,16 +127,43 @@ def sneakers_class(data, y_train):
 
     return sneakers, sneakers_labels, class_B
 
+import numpy as np
+
+def pants_dress_class(data):
+    pants = []
+    class_C = []
+
+    for img in data:
+        height, width = img.shape[:2]
+        right = 5
+        left = 5
+
+        left_pixels = img[:, :left]
+        right_pixels = img[:, width-right:]
+        
+        if np.sum(right_pixels) == 0 and np.sum(left_pixels) == 0:
+            pants.append(img)
+        else:
+            class_C.append(img)
+
+    pants = np.array(pants)
+    class_C = np.array(class_C)
+
+    return pants, class_C
+
+
 
 # print(np.shape(class_shoes))
 # plot_images_per_class(class_A)
 
 sneakers, sneakers_label, class_A = sneakers_class(x_train_data, y_train_data)
 class_B, class_shoes = shoes_class(class_A)
+pants, class_C = pants_dress_class(class_B)
 
-print(np.shape(sneakers))
-print(np.shape(class_shoes))
-plot_images_per_class(class_B)
+# print(np.shape(sneakers))
+# print(np.shape(class_shoes))
+print(np.shape(pants))
+plot_images_per_class(pants)
 
 
 # ========================== 인식기 ==========================
