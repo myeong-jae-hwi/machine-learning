@@ -131,28 +131,26 @@ def sneakers_class(data, y_train):
 # print(np.shape(class_shoes))
 # plot_images_per_class(class_A)
 
-sneakers, sneakers_label, class_B = sneakers_class(x_train_data, y_train_data)
-class_A, class_shoes = shoes_class(class_B)
+sneakers, sneakers_label, class_A = sneakers_class(x_train_data, y_train_data)
+class_B, class_shoes = shoes_class(class_A)
 
-# print(np.shape(sneakers))
-# print(np.shape(class_shoes))
-# plot_images_per_class(class_A)
+print(np.shape(sneakers))
+print(np.shape(class_shoes))
+plot_images_per_class(class_B)
 
 
 # ========================== 인식기 ==========================
-from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score
+# from sklearn.neural_network import MLPClassifier
+# from sklearn.metrics import accuracy_score
 
-# MLPClassifier 초기화, hidden_layer_sizes를 제외한 다른 매개변수는 모두 기본값으로 설정됩니다.
-mlp_model = MLPClassifier()
+# mlp_model = MLPClassifier()
 
-# MLPClassifier 모델에 데이터를 학습
-mlp_model.fit(np.array(sneakers).reshape(len(sneakers), -1), sneakers_label)
+# # MLPClassifier 모델에 데이터를 학습
+# mlp_model.fit(np.array(sneakers).reshape(len(sneakers), -1), sneakers_label)
 
-# 테스트 데이터에 대해 예측
-y_pred_mlp = mlp_model.predict(x_test.reshape(len(x_test), -1))
+# # 테스트 데이터에 대해 예측
+# y_pred_mlp = mlp_model.predict(x_test.reshape(len(x_test), -1))
 
-# 정확도 측정
-accuracy_mlp = accuracy_score(y_test, y_pred_mlp)
-print("MLPClassifier Accuracy:", accuracy_mlp)
-
+# # 정확도 측정
+# accuracy_mlp = accuracy_score(y_test, y_pred_mlp)
+# print("MLPClassifier Accuracy:", accuracy_mlp)
