@@ -162,8 +162,8 @@ pants, class_C = pants_dress_class(class_B)
 
 # print(np.shape(sneakers))
 # print(np.shape(class_shoes))
-print(np.shape(pants))
-plot_images_per_class(pants)
+print(np.shape(class_C))
+plot_images_per_class(class_C)
 
 
 # ========================== 인식기 ==========================
