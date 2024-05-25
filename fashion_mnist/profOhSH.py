@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from collections import Counter
+
 
 x_train = np.load('x_train.npy')
 y_train = np.load('y_train.npy')
@@ -74,11 +76,13 @@ def plot_images_per_class(data, num_images_per_class=10):
         plt.show()
 
 # ====================== 신발 클래스를 분류하고 싶었지만 부츠만 댐 ㅋㅋ =================================
-def shoes_class(data):
+def shoes_class(data, y_train):
     class_A = []
+    class_A_labels = []
     class_shoes = []
+    class_shoes_labels = []
 
-    for img in data:
+    for img, label in zip(data, y_train):
         # 데이터의 x축 기준 중간에 수직선을 그어 좌, 우의 0이 아닌 픽셀수를 검사
         mid_x = img.shape[1] // 2
         left_pixels = np.count_nonzero(img[:, :mid_x])
@@ -87,22 +91,38 @@ def shoes_class(data):
         # 픽셀 수가 비슷하다면 class A에 저장, 그렇지 않다면 class_shoes에 저장
         if abs(left_pixels - right_pixels) < 80:
             class_A.append(img)
+            class_A_labels.append(label)
         else:
             class_shoes.append(img)
+            class_shoes_labels.append(label)
 
-    return class_A, class_shoes
+    class_A = np.array(class_A)
+    class_A_labels = np.array(class_A_labels)
+    class_shoes = np.array(class_shoes)
+    class_shoes_labels = np.array(class_shoes_labels)
+
+    return class_A, class_A_labels, class_shoes, class_shoes_labels
   
-# =========================== 슬리퍼 분류 (넓이가 쓰레쉬보다 작을때) ===================================
-def sandle_class(data):    
-    # 샌들 클래스 분류
-    adaptive_thresh_images = [cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 35, 2) for img in data]
-    # plot_images_per_class(adaptive_thresh_images)
+# =========================== 이진화  ===================================
+def binery_image(data):
+    binery_images = []    
+    for img in data:
+        _, threshold = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+        binery_images.append(threshold)
+    return binery_images
+
+# =========================== 라벨 수 출력 ==========================
+def print_label_counts(labels):
+    label_counts = Counter(labels)
+    for label, count in label_counts.items():
+        print(f"{label}: {count}개")
 
 # =========================== 신발 분류 ==========================
 def sneakers_class(data, y_train):
     sneakers = []
     class_B = []
     sneakers_labels = []
+    class_B_label = []
 
     for img, label in zip(data, y_train):
         # 이미지의 높이와 너비를 가져옴
@@ -120,20 +140,24 @@ def sneakers_class(data, y_train):
             sneakers_labels.append(label)
         else:
             class_B.append(img)
+            class_B_label.append(label)
 
     sneakers=np.array(sneakers)
     sneakers_labels = np.array(sneakers_labels)
     class_B = np.array(class_B)
+    class_B_label = np.array(class_B_label)
 
-    return sneakers, sneakers_labels, class_B
+    return sneakers, sneakers_labels, class_B, class_B_label
 
-import numpy as np
+# ===================== 바지 / 드레스 분류 =====================
 
-def pants_dress_class(data):
+def pants_dress_class(data, y_train):
     pants = []
+    pants_labels = []
     class_C = []
+    class_C_labels = []
 
-    for img in data:
+    for img, label in zip(data, y_train):
         height, width = img.shape[:2]
         right = 5
         left = 5
@@ -143,28 +167,68 @@ def pants_dress_class(data):
         
         if np.sum(right_pixels) == 0 and np.sum(left_pixels) == 0:
             pants.append(img)
+            pants_labels.append(label)
         else:
             class_C.append(img)
+            class_C_labels.append(label)
 
     pants = np.array(pants)
+    pants_labels = np.array(pants_labels)
     class_C = np.array(class_C)
+    class_C_labels = np.array(class_C_labels)
 
-    return pants, class_C
+    return pants, pants_labels, class_C, class_C_labels
 
+# ===================== 티셔츠 분류 =======================
 
+def t_shorts_class(data):
+    t_shorts = []
+    class_D = []
+
+    for img in data:
+        _, binarized_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        height, width = binarized_img.shape[:2]
+
+        right = 5
+        left = 5
+
+        bottom_nonzero_left = -1
+        bottom_nonzero_right = -1
+
+        for i in range(height-1, 1, -1):
+            if img[i, left] >= 10:
+                bottom_nonzero_left = i
+                img[bottom_nonzero_left, ] = 255
+                break
+
+        # for i in range(height-1, -1, -1):
+        #     if img[i, width-right] != 0:
+        #         bottom_nonzero_right = i
+        #         break
+
+        img[:, left] = 255 
+        # img[:, width-right] = 255 
+        # img[bottom_nonzero_left, ] = 255
+
+        print("Bottom nonzero index for left side:", bottom_nonzero_left)
+        t_shorts.append(img)
+
+    return t_shorts
 
 # print(np.shape(class_shoes))
 # plot_images_per_class(class_A)
 
-sneakers, sneakers_label, class_A = sneakers_class(x_train_data, y_train_data)
-class_B, class_shoes = shoes_class(class_A)
-pants, class_C = pants_dress_class(class_B)
+sneakers, sneakers_label, class_A, class_A_label = sneakers_class(x_train_data, y_train_data)
+class_B, class_B_label, class_shoes, class_shoes_label = shoes_class(class_A, class_A_label)
+pants, pants_labels,class_C, class_C_labels = pants_dress_class(class_B, class_B_label)
+t_short = t_shorts_class(class_C)
 
-# print(np.shape(sneakers))
+print(np.shape(pants))
 # print(np.shape(class_shoes))
-print(np.shape(class_C))
-plot_images_per_class(class_C)
-
+# print(np.shape(pants))
+# binery_image(t_short)
+print_label_counts(pants_labels)
+plot_images_per_class(t_short)
 
 # ========================== 인식기 ==========================
 # from sklearn.neural_network import MLPClassifier
