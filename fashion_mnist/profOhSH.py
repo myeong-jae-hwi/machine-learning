@@ -103,14 +103,6 @@ def shoes_class(data, y_train):
 
     return class_A, class_A_labels, class_shoes, class_shoes_labels
   
-# =========================== 이진화  ===================================
-def binery_image(data):
-    binery_images = []    
-    for img in data:
-        _, threshold = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-        binery_images.append(threshold)
-    return binery_images
-
 # =========================== 라벨 수 출력 ==========================
 def print_label_counts(labels):
     label_counts = Counter(labels)
@@ -181,13 +173,14 @@ def pants_dress_class(data, y_train):
 
 # ===================== 티셔츠 분류 =======================
 
-def t_shorts_class(data):
-    t_shorts = []
+def t_shorts_class(data, y_train):
+    t_short = []
+    t_short_label = []
     class_D = []
+    class_D_label = []
 
-    for img in data:
-        _, binarized_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        height, width = binarized_img.shape[:2]
+    for img, label in zip(data, y_train):
+        height, width = img.shape[:2]
 
         right = 5
         left = 5
@@ -201,34 +194,40 @@ def t_shorts_class(data):
                 img[bottom_nonzero_left, ] = 255
                 break
 
-        # for i in range(height-1, -1, -1):
-        #     if img[i, width-right] != 0:
-        #         bottom_nonzero_right = i
-        #         break
+        if bottom_nonzero_left != -1 and bottom_nonzero_left < 15:
+            t_short.append(img)
+            t_short_label.append(label)
+        else:
+            class_D.append(img)
+            class_D_label.append(label)
 
         img[:, left] = 255 
-        # img[:, width-right] = 255 
-        # img[bottom_nonzero_left, ] = 255
+        
+    t_short = np.array(t_short)
+    t_short_label = np.array(t_short_label)
+    class_D = np.array(class_D)
+    class_D_label = np.array(class_D_label)
 
-        print("Bottom nonzero index for left side:", bottom_nonzero_left)
-        t_shorts.append(img)
+    return t_short, t_short_label, class_D, class_D_label
 
-    return t_shorts
 
 # print(np.shape(class_shoes))
 # plot_images_per_class(class_A)
 
 sneakers, sneakers_label, class_A, class_A_label = sneakers_class(x_train_data, y_train_data)
 class_B, class_B_label, class_shoes, class_shoes_label = shoes_class(class_A, class_A_label)
-pants, pants_labels,class_C, class_C_labels = pants_dress_class(class_B, class_B_label)
-t_short = t_shorts_class(class_C)
+pants, pants_labels,class_C, class_C_label = pants_dress_class(class_B, class_B_label)
+t_short, t_shorts_label, class_D, class_D_label = t_shorts_class(class_C, class_C_label)
+t_short_V2, t_shorts_V2_label, class_E, class_E_label = t_shorts_class(pants, pants_labels)
+
 
 print(np.shape(pants))
+print_label_counts(pants_labels)
+
+plot_images_per_class(pants)
+
 # print(np.shape(class_shoes))
 # print(np.shape(pants))
-# binery_image(t_short)
-print_label_counts(pants_labels)
-plot_images_per_class(t_short)
 
 # ========================== 인식기 ==========================
 # from sklearn.neural_network import MLPClassifier
