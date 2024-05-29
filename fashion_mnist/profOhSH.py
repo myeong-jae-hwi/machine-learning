@@ -3,6 +3,27 @@ import matplotlib.pyplot as plt
 import cv2
 from collections import Counter
 
+'''
+2024. 05. 29 Create by Myeong Jaehwi
+
+⠀⠀⠀⠀⠀⠀⣾⠛⡻⣧⢿⠛⣻⣿⠛⣻⣿⠛⢻⣿⡛⢛⣛⣛⣛⣛⣿⡼⢟⣛⣛⠛⢿⣮⡟⠻⣿⣼⠟⢛⣿⡼⢛⣛⣛⠛⢿⣆⠀⠀⠀⠀⠀⢰⡟⠛⣿⡾⠟⣛⣛⠛⢻⣧⡿⠛⣛⣛⣛⡛⣿⡿⠛⣿⣧⡟⠛⣻⡿⠛⣿⣧⡿⠛⣻⡿⠛⣿⣧⠀⠀⠀
+⠀⠀⠀⠀⠀⣸⡇⢠⡈⣍⠀⢠⣿⣇⠠⠿⠏⣄⣿⡯⠀⠾⠿⠿⣿⣿⡟⠀⣾⣿⡏⢀⣿⡿⢀⣠⠩⠟⠀⣽⡿⠀⣾⣿⠿⠶⣿⡿⠀⣄⣄⣄⣄⣿⠁⣸⣿⠁⣸⣿⣿⠁⢼⣿⠁⠰⠿⠿⢿⣿⣿⠃⠨⠿⠿⠁⣸⣿⠃⣰⡿⣿⠃⣸⣿⠃⢰⣿⠇⠀⠀⠀
+⠀⠀⠀⠀⢠⡿⠀⣾⣿⡟⠀⣿⡟⣻⠇⢰⣿⣿⣿⠁⣸⣿⢿⣿⣿⣿⠁⢸⡿⡿⡀⣼⣿⠃⣰⣿⣧⠀⣸⣿⡃⢸⢿⢿⡁⢼⣿⠁⣸⡏⠨⣿⢿⢇⢠⣿⡗⢠⣬⣬⡄⢐⣿⡏⢀⣿⣿⣿⣿⣿⡏⢀⣿⣿⠏⢠⣿⡏⢀⢠⡤⠁⢠⣾⡏⢀⣿⡟⠀⠀⠀⠀
+⠀⠀⠀⠀⢺⣧⣷⣿⢻⣵⣽⣿⠃⢿⡾⣾⡿⠐⣷⣶⣶⢶⣶⣶⣿⢟⣿⣶⢾⣦⣟⡟⣿⣶⣿⡻⣳⣶⣿⡿⣿⣶⣳⣽⣷⣿⡗⠀⠹⢿⣾⡶⣶⣼⣻⢿⣶⣿⡟⣻⣶⣿⣿⣶⣶⡶⣶⣶⣾⣿⣶⣿⣟⢟⣮⣾⣿⣶⣷⣿⢻⣵⣾⣿⣾⣾⣿⠁⠀⠀⠀⠀
+
+코드 설명
+
+1. 데이터 클래스 별 1000개씩 분할 -> train, valid, test (2000개)
+2. 특징점에 따라 데이터를 분류
+3. 분류된 데이터에 예측 레이블 적용
+4. True 레이블과 비교해서 정확도 측정
+
+적용한 특징점
+T-shirt: 왼쪽에서 5픽셀을 기준으로 가장 큰 y축 즉, 가장 아래에 있는 픽셀이 15픽셀 이하일 경우 T-shirt로 분류
+Pants: 아래에서 5픽셀을 기준으로 오른쪽에서 5번째 픽셀부터 3번 연속 0이 나오면 Pants로 분류
+
+
+'''
 
 x_train = np.load('x_train.npy')
 y_train = np.load('y_train.npy')
@@ -211,6 +232,77 @@ def t_shorts_class(data, y_train):
     return t_short, t_short_label, class_D, class_D_label
 
 
+def zeros_area(arr):
+    count = 0
+    in_zeros = False
+    for num in arr:
+        if num == 0:
+            if arr[num + 1] == 0:
+                if not in_zeros:
+                    in_zeros = True
+                    count += 1
+        else:
+            in_zeros = False
+    return count
+
+def pants_class(data, y_train):
+    pants_class = []
+    pants_label = []
+    class_E = []
+    class_E_label = []
+    for img, label in zip(data, y_train):
+        height, width = img.shape[:2]
+        bottom = 5
+
+        feat_pants = height - bottom
+        img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+        fifth_col_zeros = zeros_area(img[feat_pants, ::-1]) 
+
+        if fifth_col_zeros == 3:
+            img[feat_pants, ] = 255
+            pants_class.append(img)
+            pants_label.append(label)
+        else:
+            class_E.append(img)
+            class_E_label.append(label)
+        
+    pants_class = np.array(pants_class)
+    pants_label = np.array(pants_label)
+    class_E = np.array(class_E)
+    class_E_label = np.array(class_E_label)
+    return pants_class, pants_label, class_E, class_E_label
+
+def bag_class(data, y_train):
+    bag_class = []
+    bag_label = []
+    class_F = []
+    class_F_label = []
+
+    for img, label in zip(data, y_train):
+        height, width = img.shape[:2]
+        top = 5
+
+        feat_bag = top 
+        # img = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 2)
+        
+        fifth_col_zeros = zeros_area(img[feat_bag, :])
+
+        if fifth_col_zeros == 3:
+            img[feat_bag, :] = 255
+            bag_class.append(img)
+            bag_label.append(label)
+        else:
+            class_F.append(img)
+            class_F_label.append(label)
+        
+    bag_class = np.array(bag_class)
+    bag_label = np.array(bag_label)
+    class_F = np.array(class_F)
+    class_F_label = np.array(class_F_label)
+
+    return bag_class, bag_label, class_F, class_F_label
+
+
 # print(np.shape(class_shoes))
 # plot_images_per_class(class_A)
 
@@ -218,13 +310,17 @@ sneakers, sneakers_label, class_A, class_A_label = sneakers_class(x_train_data, 
 class_B, class_B_label, class_shoes, class_shoes_label = shoes_class(class_A, class_A_label)
 pants, pants_labels,class_C, class_C_label = pants_dress_class(class_B, class_B_label)
 t_short, t_shorts_label, class_D, class_D_label = t_shorts_class(class_C, class_C_label)
-t_short_V2, t_shorts_V2_label, class_E, class_E_label = t_shorts_class(pants, pants_labels)
+pants_class, pants_label, class_E, class_E_label = pants_class(pants, pants_labels)
+bag_class, bag_label, class_F, class_F_label = bag_class(class_E, class_E_label)
 
 
-print(np.shape(pants))
-print_label_counts(pants_labels)
+print(np.shape(class_E))
+print_label_counts(class_E_label)
 
-plot_images_per_class(pants)
+print(np.shape(bag_class))
+print_label_counts(bag_label)
+
+plot_images_per_class(bag_class)
 
 # print(np.shape(class_shoes))
 # print(np.shape(pants))
