@@ -96,6 +96,7 @@ def plot_images_per_class(data, num_images_per_class=10):
                 axes[j, i].axis('off')
         plt.show()
 
+
 # ====================== 신발 클래스를 분류하고 싶었지만 부츠만 댐 ㅋㅋ =================================
 def shoes_class(data, y_train):
     class_A = []
@@ -130,6 +131,22 @@ def print_label_counts(labels):
     for label, count in label_counts.items():
         print(f"{label}: {count}개")
 
+def matplot_label_counts(labels, title):
+    label_counts = Counter(labels)
+    labels, counts = zip(*label_counts.items())
+
+    total_count = sum(counts)
+
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(labels, counts, color='skyblue')
+    plt.xlabel('Labels')
+    plt.ylabel('Counts')
+    plt.title(title + ' EA : '+ str(total_count))
+
+    for bar, count in zip(bars, counts):
+        plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height(), str(count), ha='center', va='bottom')
+
+    plt.show()
 # =========================== 신발 분류 ==========================
 def sneakers_class(data, y_train):
     sneakers = []
@@ -227,10 +244,9 @@ def t_shorts_class(data, y_train):
     t_short = np.array(t_short)
     t_short_label = np.array(t_short_label)
     class_D = np.array(class_D)
-    class_D_label = np.array(class_D_label)
+    class_D_label = np.array(class_D_label) 
 
     return t_short, t_short_label, class_D, class_D_label
-
 
 def zeros_area(arr):
     count = 0
@@ -310,12 +326,21 @@ sneakers, sneakers_label, class_A, class_A_label = sneakers_class(x_train_data, 
 class_B, class_B_label, class_shoes, class_shoes_label = shoes_class(class_A, class_A_label)
 pants, pants_labels,class_C, class_C_label = pants_dress_class(class_B, class_B_label)
 t_short, t_shorts_label, class_D, class_D_label = t_shorts_class(class_C, class_C_label)
-pants_class, pants_label, class_E, class_E_label = pants_class(pants, pants_labels)
-bag_class, bag_label, class_F, class_F_label = bag_class(class_E, class_E_label)
+pants_class, pants_label, dress_class, dress_label = pants_class(pants, pants_labels)
+bag_class, bag_label, class_F, class_F_label = bag_class(dress_class, dress_label)
 
 
-print(np.shape(class_E))
-print_label_counts(class_E_label)
+print("Class sneakers : ")
+matplot_label_counts(sneakers_label, "sneakers")
+print("\nClass shoes : ")
+matplot_label_counts(class_shoes_label, "shoes")
+print("\nClass pants : ")
+matplot_label_counts(pants_label, "pants")
+print("\nClass dress : ")
+matplot_label_counts(dress_label, "dress")
+print("\nClass t_short : ")
+matplot_label_counts(t_shorts_label, "t_shorts")
+
 
 print(np.shape(bag_class))
 print_label_counts(bag_label)
