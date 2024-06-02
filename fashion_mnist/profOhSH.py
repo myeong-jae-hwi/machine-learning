@@ -29,27 +29,6 @@ y_train = np.load('y_train.npy')
 x_test = np.load('x_test.npy')
 y_test = np.load('y_test.npy')
 
-# def plot_images_per_label(data, labels, num_images_per_label=10):
-#     unique_labels = np.unique(labels)
-#     num_labels = len(unique_labels)
-    
-#     fig, axes = plt.subplots(num_images_per_label, num_labels, figsize=(num_labels * 2, num_images_per_label * 2))
-    
-#     for col, label in enumerate(unique_labels):
-#         label_indices = np.where(labels == label)[0][:num_images_per_label]
-#         label_data = data[label_indices]
-        
-#         for row in range(num_images_per_label):
-#             axes[row, col].imshow(label_data[row])
-#             axes[row, col].axis('off')
-#             if row == 0:
-#                 axes[row, col].set_title(f'Label {label}')
-    
-#     plt.tight_layout()
-#     plt.show()
-
-# plot_images_per_label(x_train, y_train)
-
 # ====================== 데이터 train이랑 valid 나누는 부분 ======================
 def split_data(x_train, y_train, x_test, y_test):
   train_unique_labels = np.unique(y_train)  # [0 1 2 3 4 5 6 7 8 9]
@@ -243,8 +222,6 @@ def t_shorts_class(data, y_train):
         else:
             class_D.append(img)
             class_D_label.append(label)
-
-        # img[:, left] = 255 
         
     t_short = np.array(t_short)
     t_short_label = np.array(t_short_label)
@@ -285,7 +262,6 @@ def pants_class(data, y_train):
         fifth_col_zeros = zeros_area(img[feat_pants, ::-1]) 
 
         if fifth_col_zeros == 3:
-            # img[feat_pants, ] = 255
             pants_class.append(img)
             pants_label.append(label)
         else:
@@ -299,7 +275,7 @@ def pants_class(data, y_train):
     return pants_class, pants_label, class_E, class_E_label
 
 # ===================== 가방 분류 =======================
-def bag_class(data, y_train):
+def bag_class_fuc(data, y_train):
     bag_class = []
     bag_label = []
     class_F = []
@@ -328,15 +304,43 @@ def bag_class(data, y_train):
 
     return bag_class, bag_label, class_F, class_F_label
 
-def sandle(data, y_train):
-    sandle_class = []
-    sandle_label = []
+# ========================== 샌들이 안없어져서 재분류!!!!!!!!!!!!!!!!!!!!!! ============
+def sandal_2(data,y_train):
+    sandal = []
+    sandal_label = []
+    sneakers = []
+    sneakers_label = []
+
+
+    for img, label in zip(data, y_train):
+        # binary_img  = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 111, 2)
+        fifth_col_zeros = zeros_area(img[14,:]) 
+
+        if fifth_col_zeros > 2:
+            img[14, :] = 255
+            sandal.append(img)
+            sandal_label.append(label)
+        else:
+            sneakers.append(img)
+            sneakers_label.append(label)
+
+    sneakers = np.array(sneakers)
+    sneakers_label = np.array(sneakers_label)
+    sandal = np.array(sandal)
+    sandal_label = np.array(sandal_label)
+    
+    return sneakers, sneakers_label, sandal, sandal_label
+
+# ========================= 샌들 분류 ======================
+def sandal(data, y_train):
+    sandal_class = []
+    sandal_label = []
     class_G = []
     class_G_label = []
     pixel_sums=[]
 
     for img in data:
-        binary_img  = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 111, 2)
+        binary_img  = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 151, 2)
         pixel_sum = np.sum(binary_img == 255)  
         pixel_sums.append(pixel_sum)
 
@@ -344,18 +348,19 @@ def sandle(data, y_train):
     
     for img, label, pixel_sum in zip(data, y_train, pixel_sums):
         if pixel_sum <= threshold:
-            sandle_class.append(img)
-            sandle_label.append(label)
+            sandal_class.append(img)
+            sandal_label.append(label)
+
         else:
             class_G.append(img)
             class_G_label.append(label)
 
-    sandle_class = np.array(sandle_class)
-    sandle_label = np.array(sandle_label)
+    sandal_class = np.array(sandal_class)
+    sandal_label = np.array(sandal_label)
     class_G = np.array(class_G)
     class_G_label = np.array(class_G_label)
 
-    return sandle_class, sandle_label, class_G, class_G_label
+    return sandal_class, sandal_label, class_G, class_G_label
 
 
 # ====================== 클러치백 분류 =======================
@@ -376,6 +381,7 @@ def clutch_bag(data, y_train):
                 return True
         
         return False
+    
     clutch_bag = []
     clutch_bag_label = []
     other_class = []
@@ -397,6 +403,37 @@ def clutch_bag(data, y_train):
     return clutch_bag, clutch_bag_label, other_class, other_label
 
 
+def coat_class(data, y_train):
+    coat = []
+    coat_label = []
+    other_class = []
+    other_label = []
+    
+    pixel_sums = []
+
+    for img, label in zip(data, y_train):
+        binary_img  = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 2)
+        pixel_sum = np.sum(binary_img == 255)
+        pixel_sums.append(pixel_sum)
+
+    threshold = np.percentile(pixel_sums, 70)
+    for img, label, pixel_sum in zip(data, y_train, pixel_sums):
+        binary_img  = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 91, 2)
+
+        if threshold >= pixel_sum:
+            coat.append(binary_img)
+            coat_label.append(label)
+
+        else:
+            other_class.append(binary_img)
+            other_label.append(label)
+
+    coat = np.array(coat)
+    coat_label = np.array(coat_label)
+    other_class = np.array(other_class)
+    other_label = np.array(other_label)
+    return coat, coat_label,other_class, other_label
+
 
 # =================================================================
 
@@ -405,26 +442,36 @@ class_B, class_B_label, class_shoes, class_shoes_label = shoes_class(class_A, cl
 pants, pants_labels,class_C, class_C_label = pants_dress_class(class_B, class_B_label)
 t_short, t_shorts_label, class_D, class_D_label = t_shorts_class(class_C, class_C_label)
 pants_class, pants_label, dress_class, dress_label = pants_class(pants, pants_labels)
-sandle_sneakers, sandle_sneakers_label, boots, boots_label = shoes_class(sneakers, sneakers_label)
+sandal_sneakers, sandal_sneakers_label, boots, boots_label = shoes_class(sneakers, sneakers_label)
 boots = np.concatenate((class_shoes, boots))    # 부츠 합치기
 boots_label = np.concatenate((class_shoes_label, boots_label))
-sandle, sandle_label, sneakers, sneakers_label = sandle(sandle_sneakers, sandle_sneakers_label)
+sandal, sandal_label, sneakers, sneakers_label = sandal(sandal_sneakers, sandal_sneakers_label)
+sneakers, sneakers_label, sandal_2, sandal_label_2 = sandal_2(sneakers, sneakers_label)
+sandal = np.concatenate((sandal, sandal_2))
+sandal_label = np.concatenate((sandal_label, sandal_label_2))
 clutch_bag, clutch_bag_label, sneakers, sneakers_label = clutch_bag(sneakers, sneakers_label)
-bag_class, bag_label, class_F, class_F_label = bag_class(class_D, class_D_label)
+bag_class, bag_label, class_F, class_F_label = bag_class_fuc(class_D, class_D_label)
+# clutch_bag_2, clutch_bag_label_2, class_G, class_G_label_2 = bag_class_fuc(class_F, class_F_label)
 bag = np.concatenate((clutch_bag, bag_class))
 bag_label = np.concatenate((clutch_bag_label, bag_label))
+coat, coat_label, class_G, class_G_label = coat_class(class_F, class_F_label)
+
+matplot_label_counts(class_F_label,'class_G_label')
+
+matplot_label_counts(class_G_label,'coat_label')
+plot_images_per_class(coat)
 
 
 matplot_label_counts(t_shorts_label,'t_shorts')
 matplot_label_counts(pants_label,"pants_class")
 matplot_label_counts(class_F_label,"class_F")
 matplot_label_counts(dress_label,"dress_class")
-matplot_label_counts(sandle_label,"sandle_label")
+matplot_label_counts(sandal_label,"sandal_label")
 matplot_label_counts(sneakers_label,"sneakers")
 matplot_label_counts(bag_label, 'bag_class')
 matplot_label_counts(boots_label,"boots")
 
-plot_images_per_class(sneakers)
+plot_images_per_class(class_F)
 
 
 # =================== 예측 레이블 적용 후 합치기 ========================
@@ -432,18 +479,18 @@ t_shorts_label = np.full_like(t_shorts_label, 0)
 pants_label = np.full_like(pants_label, 1)
 # class_F_label = np.full_like(class_F_label, 2)
 dress_label = np.full_like(dress_label, 3)
-sandle_label = np.full_like(sandle_label, 5)
+sandal_label = np.full_like(sandal_label, 5)
 sneakers_label = np.full_like(sneakers_label, 7)
 bag_label = np.full_like(bag_label, 8)
 boots_label = np.full_like(boots_label, 9)
 
-all_images = np.concatenate((t_short, pants_class, class_F, dress_class, sandle, sneakers, bag, boots))
-all_labels = np.concatenate((t_shorts_label, pants_label, class_F_label, dress_label, sandle_label, sneakers_label, bag_label, boots_label))
+all_images = np.concatenate((t_short, pants_class, class_F, dress_class, sandal, sneakers, bag, boots))
+all_labels = np.concatenate((t_shorts_label, pants_label, class_F_label, dress_label, sandal_label, sneakers_label, bag_label, boots_label))
 
 print("t_shorts_label: ",np.shape(t_short))
 print("pants_label: ",np.shape(pants))
 print("dress_label: ",np.shape(dress_class))
-print("sandle_label: ",np.shape(sandle))
+print("sandal_label: ",np.shape(sandal))
 print("sneakers_label: ",np.shape(sneakers))
 print("bag_label: ",np.shape(bag))
 print("boots_label: ",np.shape(boots))
@@ -453,10 +500,7 @@ print("class_F_label: ", np.shape(class_F))
 
 matplot_label_counts(all_labels, 'all_labels')
 
-print(accuracy_score(y_train_data, all_labels))
-
-
-
+print(f"정확도 : {accuracy_score(y_train_data, all_labels)}")
 
 # 모델 입력 크기에 맞게 데이터 형태 변환
 print(np.shape(all_images))
@@ -470,7 +514,7 @@ x_test = x_test.reshape(x_test.shape[0], -1).astype('float32') / 255
 
 # 로지스틱
 logistic_model = LogisticRegression()
-logistic_model.fit(all_images, all_labels)
+logistic_model.fit(x_train, y_train)
 logistic_pred = logistic_model.predict(x_test)
 logistic_accuracy = accuracy_score(y_test, logistic_pred)
 print("Logistic Regression Accuracy:", logistic_accuracy)
@@ -499,8 +543,8 @@ print("MLP Accuracy:", mlp_accuracy)
 # matplot_label_counts(t_shorts_label, "t_shorts")
 # print("\nClass class_D : ")
 # matplot_label_counts(class_D_label, "class_D")
-# print("\nClass sandle_sneakers : ")
-# matplot_label_counts(sandle_sneakers_label,"sandle_sneakers")
+# print("\nClass sandal_sneakers : ")
+# matplot_label_counts(sandal_sneakers_label,"sandal_sneakers")
 # print("\nClass boots : ")
 # matplot_label_counts(boots_label, "boots")
 
@@ -510,8 +554,6 @@ print("MLP Accuracy:", mlp_accuracy)
 # print_label_counts(bag_label, 'bag_label')
 # print_label_counts(boots_label, "boots")
 # plot_images_per_class(boots)
-
-
 
 # print(np.shape(class_shoes))
 # print(np.shape(pants))
