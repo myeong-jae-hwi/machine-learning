@@ -9,21 +9,6 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 from sklearn.model_selection import train_test_split
 import seaborn as sns
 
-'''
-코드 설명
-
-1. 데이터 클래스 별 1000개씩 분할 -> train, valid, test (2000개)
-2. 특징점에 따라 데이터를 분류
-3. 분류된 데이터에 예측 레이블 적용
-4. True 레이블과 비교해서 정확도 측정
-
-적용한 특징점
-T-shirt: 왼쪽에서 5픽셀을 기준으로 가장 큰 y축 즉, 가장 아래에 있는 픽셀이 15픽셀 이하일 경우 T-shirt로 분류
-Pants: 아래에서 5픽셀을 기준으로 오른쪽에서 5번째 픽셀부터 3번 연속 0이 나오면 Pants로 분류
-
-
-'''
-
 x_train = np.load('x_train.npy')
 y_train = np.load('y_train.npy')
 x_test = np.load('x_test.npy')
@@ -109,11 +94,6 @@ def shoes_class(data, y_train):
     return class_A, class_A_labels, class_shoes, class_shoes_labels
   
 # =========================== 라벨 수 출력 ==========================
-def print_label_counts(labels, name):
-    label_counts = Counter(labels)
-    print(name)
-    for label, count in label_counts.items():
-        print(f"{label}: {count}개")
 
 def matplot_label_counts(labels, title):
     label_counts = Counter(labels)
@@ -245,7 +225,7 @@ def zeros_area(arr):
     return count
 
 # ===================== 바지 분류 =======================
-def pants_class(data, y_train):
+def pants_func(data, y_train):
     pants_class = []
     pants_label = []
     class_E = []
@@ -311,13 +291,10 @@ def sandal_2(data,y_train):
     sneakers = []
     sneakers_label = []
 
-
     for img, label in zip(data, y_train):
-        # binary_img  = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 111, 2)
         fifth_col_zeros = zeros_area(img[14,:]) 
 
         if fifth_col_zeros > 2:
-            img[14, :] = 255
             sandal.append(img)
             sandal_label.append(label)
         else:
@@ -364,7 +341,7 @@ def sandal(data, y_train):
 
 
 # ====================== 클러치백 분류 =======================
-def clutch_bag(data, y_train):
+def clutch_bag_fuc(data, y_train):
     
     def rectangle(image):
         binary_img  = cv2.adaptiveThreshold(image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 111, 2)
@@ -436,12 +413,17 @@ def coat_class(data, y_train):
 
 
 # =================================================================
-
+print(f"train data: {np.shape(x_train_data)}")
+print(f"train data: {np.shape(x_valid_data)}")
+print(f"test data: {np.shape(x_test_data)}")
 sneakers, sneakers_label, class_A, class_A_label = sneakers_class(x_train_data, y_train_data)
 class_B, class_B_label, class_shoes, class_shoes_label = shoes_class(class_A, class_A_label)
-pants, pants_labels,class_C, class_C_label = pants_dress_class(class_B, class_B_label)
-t_short, t_shorts_label, class_D, class_D_label = t_shorts_class(class_C, class_C_label)
-pants_class, pants_label, dress_class, dress_label = pants_class(pants, pants_labels)
+bag_class, bag_label, class_C, class_C_label = bag_class_fuc(class_B, class_B_label)
+
+pants, pants_labels,class_D, class_D_label = pants_dress_class(class_C, class_C_label)
+
+t_short, t_shorts_label, class_E, class_E_label = t_shorts_class(class_D, class_D_label)
+pants_class, pants_label, dress_class, dress_label = pants_func(pants, pants_labels)
 sandal_sneakers, sandal_sneakers_label, boots, boots_label = shoes_class(sneakers, sneakers_label)
 boots = np.concatenate((class_shoes, boots))    # 부츠 합치기
 boots_label = np.concatenate((class_shoes_label, boots_label))
@@ -449,90 +431,97 @@ sandal, sandal_label, sneakers, sneakers_label = sandal(sandal_sneakers, sandal_
 sneakers, sneakers_label, sandal_2, sandal_label_2 = sandal_2(sneakers, sneakers_label)
 sandal = np.concatenate((sandal, sandal_2))
 sandal_label = np.concatenate((sandal_label, sandal_label_2))
-clutch_bag, clutch_bag_label, sneakers, sneakers_label = clutch_bag(sneakers, sneakers_label)
-bag_class, bag_label, class_F, class_F_label = bag_class_fuc(class_D, class_D_label)
-# clutch_bag_2, clutch_bag_label_2, class_G, class_G_label_2 = bag_class_fuc(class_F, class_F_label)
-bag = np.concatenate((clutch_bag, bag_class))
-bag_label = np.concatenate((clutch_bag_label, bag_label))
-coat, coat_label, class_G, class_G_label = coat_class(class_F, class_F_label)
+clutch_bag, clutch_bag_label, sneakers, sneakers_label = clutch_bag_fuc(sneakers, sneakers_label)
+bag_class2, bag_label2, sneakers, sneakers_label = bag_class_fuc(sneakers, sneakers_label)
 
-matplot_label_counts(class_F_label,'class_G_label')
+# print(np.shape(sneakers))
+# plot_images_per_class(sneakers)
 
-matplot_label_counts(class_G_label,'coat_label')
-plot_images_per_class(coat)
+bag = np.concatenate((clutch_bag, bag_class, bag_class2))
+bag_label = np.concatenate((clutch_bag_label, bag_label, bag_label2))
+coat, coat_label, class_G, class_G_label = coat_class(class_E, class_E_label)
+
+# matplot_label_counts(class_F_label,'class_G_label')
+
+# matplot_label_counts(class_G_label,'coat_label')
+# plot_images_per_class(sneakers)
 
 
 matplot_label_counts(t_shorts_label,'t_shorts')
 matplot_label_counts(pants_label,"pants_class")
-matplot_label_counts(class_F_label,"class_F")
+matplot_label_counts(class_E_label,"class_F")
 matplot_label_counts(dress_label,"dress_class")
 matplot_label_counts(sandal_label,"sandal_label")
 matplot_label_counts(sneakers_label,"sneakers")
 matplot_label_counts(bag_label, 'bag_class')
 matplot_label_counts(boots_label,"boots")
 
-plot_images_per_class(class_F)
+# plot_images_per_class(class_F)
 
 
 # =================== 예측 레이블 적용 후 합치기 ========================
+acc = 0
+
+acc += np.count_nonzero(t_shorts_label == 0) #73%
+acc += np.count_nonzero(pants_label == 1)   #91%
+acc += np.count_nonzero(class_E_label == 2) #16%
+acc += np.count_nonzero(dress_label == 3)   #81% 
+acc += np.count_nonzero(sandal_label == 5)  #52%
+acc += np.count_nonzero(sneakers_label == 7) #77%
+acc += np.count_nonzero(bag_label == 8)     #71%
+acc += np.count_nonzero(boots_label == 9)   #89%
+print(f"정확도 : {acc/100}")
+
 t_shorts_label = np.full_like(t_shorts_label, 0)
 pants_label = np.full_like(pants_label, 1)
-# class_F_label = np.full_like(class_F_label, 2)
+class_E_label = np.full_like(class_E_label, 2)
 dress_label = np.full_like(dress_label, 3)
 sandal_label = np.full_like(sandal_label, 5)
 sneakers_label = np.full_like(sneakers_label, 7)
 bag_label = np.full_like(bag_label, 8)
 boots_label = np.full_like(boots_label, 9)
 
-all_images = np.concatenate((t_short, pants_class, class_F, dress_class, sandal, sneakers, bag, boots))
-all_labels = np.concatenate((t_shorts_label, pants_label, class_F_label, dress_label, sandal_label, sneakers_label, bag_label, boots_label))
+all_images = np.concatenate((t_short, pants_class, class_E, dress_class, sandal, sneakers, bag, boots))
+all_labels = np.concatenate((t_shorts_label, pants_label, class_E_label, dress_label, sandal_label, sneakers_label, bag_label, boots_label))
 
-print("t_shorts_label: ",np.shape(t_short))
-print("pants_label: ",np.shape(pants))
-print("dress_label: ",np.shape(dress_class))
-print("sandal_label: ",np.shape(sandal))
-print("sneakers_label: ",np.shape(sneakers))
-print("bag_label: ",np.shape(bag))
-print("boots_label: ",np.shape(boots))
-print("class_F_label: ", np.shape(class_F))
+# print("t_shorts_label: ",np.shape(t_short))
+# print("pants_label: ",np.shape(pants))
+# print("dress_label: ",np.shape(dress_class))
+# print("sandal_label: ",np.shape(sandal))
+# print("sneakers_label: ",np.shape(sneakers))
+# print("bag_label: ",np.shape(bag))
+# print("boots_label: ",np.shape(boots))
+# print("class_F_label: ", np.shape(class_E))
 
-# print("class_shoes_label: ",np.shape(class_shoes))
+# matplot_label_counts(all_labels, 'all_labels')
 
-matplot_label_counts(all_labels, 'all_labels')
 
-print(f"정확도 : {accuracy_score(y_train_data, all_labels)}")
-
-# 모델 입력 크기에 맞게 데이터 형태 변환
-print(np.shape(all_images))
-print("label: ",np.shape(all_labels))
-all_images = all_images.reshape(all_images.shape[0], 28, 28, 1).astype('float32') / 255
-x_test = x_test.reshape(x_test.shape[0], 28, 28, 1).astype('float32') / 255
-
-# 모델 입력 크기에 맞게 데이터 형태 변환
-all_images = all_images.reshape(all_images.shape[0], -1).astype('float32') / 255
+# 데이터 전처리
+all_images = all_images.reshape(all_images.shape[0],-1).astype('float32') / 255
 x_test = x_test.reshape(x_test.shape[0], -1).astype('float32') / 255
 
-# 로지스틱
-logistic_model = LogisticRegression()
-logistic_model.fit(x_train, y_train)
-logistic_pred = logistic_model.predict(x_test)
-logistic_accuracy = accuracy_score(y_test, logistic_pred)
-print("Logistic Regression Accuracy:", logistic_accuracy)
 
-# 결정 트리 
-tree_model = DecisionTreeClassifier()
-tree_model.fit(all_images, all_labels)
-tree_pred = tree_model.predict(x_test)
-tree_accuracy = accuracy_score(y_test, tree_pred)
-print("Decision Tree Accuracy:", tree_accuracy)
+# 모델 학습 및 평가
+models = {
+    "Logistic Regression": LogisticRegression(),
+    "Decision Tree": DecisionTreeClassifier(),
+    "MLP Classifier": MLPClassifier()
+}
 
-# MLP
-mlp_model = MLPClassifier()
-mlp_model.fit(all_images, all_labels)
-mlp_pred = mlp_model.predict(x_test)
-mlp_accuracy = accuracy_score(y_test, mlp_pred)
-print("MLP Accuracy:", mlp_accuracy)
+for model_name, model in models.items():
+    model.fit(all_images, all_labels)
+    predictions = model.predict(x_test)
+    accuracy = accuracy_score(y_test, predictions)
+    print(f"{model_name} Accuracy: {accuracy}")
 
+    # 혼동행렬 시각화
+    cm = confusion_matrix(y_test, predictions)
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(f'{model_name} Confusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
 
 # =========== 시각화 하는 부분 ============
 # print("\nClass pants : ")
