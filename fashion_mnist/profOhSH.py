@@ -6,7 +6,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-from sklearn.model_selection import train_test_split
 import seaborn as sns
 
 x_train = np.load('x_train.npy')
@@ -446,15 +445,14 @@ coat, coat_label, class_G, class_G_label = coat_class(class_E, class_E_label)
 # matplot_label_counts(class_G_label,'coat_label')
 # plot_images_per_class(sneakers)
 
-
-matplot_label_counts(t_shorts_label,'t_shorts')
-matplot_label_counts(pants_label,"pants_class")
-matplot_label_counts(class_E_label,"class_F")
-matplot_label_counts(dress_label,"dress_class")
-matplot_label_counts(sandal_label,"sandal_label")
-matplot_label_counts(sneakers_label,"sneakers")
-matplot_label_counts(bag_label, 'bag_class')
-matplot_label_counts(boots_label,"boots")
+# matplot_label_counts(t_shorts_label,'t_shorts')
+# matplot_label_counts(pants_label,"pants_class")
+# matplot_label_counts(class_E_label,"class_F")
+# matplot_label_counts(dress_label,"dress_class")
+# matplot_label_counts(sandal_label,"sandal_label")
+# matplot_label_counts(sneakers_label,"sneakers")
+# matplot_label_counts(bag_label, 'bag_class')
+# matplot_label_counts(boots_label,"boots")
 
 # plot_images_per_class(class_F)
 
@@ -498,51 +496,88 @@ all_labels = np.concatenate((t_shorts_label, pants_label, class_E_label, dress_l
 
 # 데이터 전처리
 all_images = all_images.reshape(all_images.shape[0],-1).astype('float32') / 255
-x_test = x_test.reshape(x_test.shape[0], -1).astype('float32') / 255
 
+x_train_data = x_train_data.reshape(-1, 28*28) / 255.0
+x_valid_data = x_valid_data.reshape(-1, 28*28) / 255.0
+x_test_data = x_test_data.reshape(-1, 28*28) / 255.0
 
-# 모델 학습 및 평가
-models = {
-    "Logistic Regression": LogisticRegression(),
-    "Decision Tree": DecisionTreeClassifier(),
-    "MLP Classifier": MLPClassifier()
+C_values = [0.001, 0.01, 0.1, 1.0, 10, 100, 300, 500]
+max_depths = [None, 5, 10, 15, 20]
+hidden_layer_sizes = [10, 50, 100, 200, 300, 400, 500, 800, 1000]
+
+# 정확도 저장용 딕셔너리
+accuracy_results = {
+    "Logistic Regression": [],
+    "Decision Tree": [],
+    "MLP Classifier": []
 }
 
-for model_name, model in models.items():
+# 로지스틱 회귀
+# for C in C_values:
+#     model = LogisticRegression(C=C, max_iter=1000)
+#     model.fit(all_images, all_labels)
+#     predictions = model.predict(x_valid_data)
+#     accuracy = accuracy_score(y_valid_data, predictions)
+#     accuracy_results["Logistic Regression"].append((C, accuracy))
+#     print(accuracy_results)
+#     cm = confusion_matrix(predictions, y_valid_data)
+#     plt.figure(figsize=(10, 7))
+#     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+#     plt.title(f'Logistic Regression (C={C}) Confusion Matrix')
+#     plt.xlabel('Predicted')
+#     plt.ylabel('True')
+#     plt.show()
+
+# 결정 트리
+# for depth in max_depths:
+#     model = DecisionTreeClassifier(max_depth=depth)
+#     model.fit(all_images, all_labels)
+#     predictions = model.predict(x_valid_data)
+#     accuracy = accuracy_score(y_valid_data, predictions)
+#     accuracy_results["Decision Tree"].append((depth, accuracy))
+#     print(accuracy_results)
+#     cm = confusion_matrix(predictions, y_valid_data)
+#     plt.figure(figsize=(10, 7))
+#     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+#     plt.title(f'Decision Tree (max_depth={depth}) Confusion Matrix')
+#     plt.xlabel('Predicted')
+#     plt.ylabel('True')
+#     plt.show()
+
+# # MLP Classifier
+for hidden_layers in hidden_layer_sizes:
+    model = MLPClassifier(hidden_layer_sizes=hidden_layers, max_iter=1000)
     model.fit(all_images, all_labels)
-    predictions = model.predict(x_test)
-    accuracy = accuracy_score(y_test, predictions)
-    print(f"{model_name} Accuracy: {accuracy}")
+    predictions = model.predict(x_valid_data)
+    accuracy = accuracy_score(y_valid_data, predictions)
+    accuracy_results["MLP Classifier"].append((hidden_layers, accuracy))
+    print(accuracy_results)
+    # cm = confusion_matrix(y_test_data, predictions)
+    # plt.figure(figsize=(10, 7))
+    # sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    # plt.title(f'MLP Classifier (hidden_layers={hidden_layers}) Confusion Matrix')
+    # plt.xlabel('Predicted')
+    # plt.ylabel('True')
+    # plt.show()
 
-    # 혼동행렬 시각화
-    cm = confusion_matrix(y_test, predictions)
-    plt.figure(figsize=(10, 7))
-    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-    plt.title(f'{model_name} Confusion Matrix')
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    plt.show()
+# 정확도 그래프 그리기
+plt.figure(figsize=(15, 7))
 
-# =========== 시각화 하는 부분 ============
-# print("\nClass pants : ")
-# matplot_label_counts(pants_label, "pants")
-# print("\nClass dress : ")
-# matplot_label_counts(dress_label, "dress")
-# print("\nClass t_short : ")
-# matplot_label_counts(t_shorts_label, "t_shorts")
-# print("\nClass class_D : ")
-# matplot_label_counts(class_D_label, "class_D")
-# print("\nClass sandal_sneakers : ")
-# matplot_label_counts(sandal_sneakers_label,"sandal_sneakers")
-# print("\nClass boots : ")
-# matplot_label_counts(boots_label, "boots")
+# Logistic Regression 정확도 그래프
+# C_vals, lr_accuracies = zip(*accuracy_results["Logistic Regression"])
+# plt.plot(C_vals, lr_accuracies, marker='o', label='Logistic Regression')
 
-# print(np.shape(class_D))
-# print_label_counts(class_D_label, 'class_D_label')
-# print(np.shape(bag_class))
-# print_label_counts(bag_label, 'bag_label')
-# print_label_counts(boots_label, "boots")
-# plot_images_per_class(boots)
+# Decision Tree 정확도 그래프
+# depth_vals, dt_accuracies = zip(*accuracy_results["Decision Tree"])
+# plt.plot(depth_vals, dt_accuracies, marker='o', label='Decision Tree')
 
-# print(np.shape(class_shoes))
-# print(np.shape(pants))
+# # MLP Classifier 정확도 그래프
+# hidden_layer_strs = [str(x) for x in hidden_layer_sizes]
+# hidden_layer_vals, mlp_accuracies = zip(*accuracy_results["MLP Classifier"])
+# plt.plot(hidden_layer_strs, mlp_accuracies, marker='o', label='MLP Classifier')
+
+plt.xlabel('Hyperparameters')
+plt.ylabel('Accuracy')
+plt.title('Model Accuracy by Hyperparameter')
+plt.legend()
+plt.show()
