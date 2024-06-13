@@ -494,49 +494,48 @@ all_labels = np.concatenate((t_shorts_label, pants_label, class_E_label, dress_l
 # matplot_label_counts(all_labels, 'all_labels')
 
 
-# 데이터 전처리
+# 평탄화
 all_images = all_images.reshape(all_images.shape[0],-1).astype('float32') / 255
 
 x_train_data = x_train_data.reshape(-1, 28*28) / 255.0
 x_valid_data = x_valid_data.reshape(-1, 28*28) / 255.0
 x_test_data = x_test_data.reshape(-1, 28*28) / 255.0
 
-C_values = [0.001, 0.01, 0.1, 1.0, 10, 100, 300, 500]
-max_depths = [None, 5, 10, 15, 20]
-hidden_layer_sizes = [10, 50, 100, 200, 300, 400, 500, 800, 1000]
+C_values = [0.01]
+max_depths = [10]
+hidden_layer_sizes = [800]
 
-# 정확도 저장용 딕셔너리
 accuracy_results = {
     "Logistic Regression": [],
     "Decision Tree": [],
     "MLP Classifier": []
 }
 
-# 로지스틱 회귀
-# for C in C_values:
-#     model = LogisticRegression(C=C, max_iter=1000)
-#     model.fit(all_images, all_labels)
-#     predictions = model.predict(x_valid_data)
-#     accuracy = accuracy_score(y_valid_data, predictions)
-#     accuracy_results["Logistic Regression"].append((C, accuracy))
-#     print(accuracy_results)
-#     cm = confusion_matrix(predictions, y_valid_data)
-#     plt.figure(figsize=(10, 7))
-#     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-#     plt.title(f'Logistic Regression (C={C}) Confusion Matrix')
-#     plt.xlabel('Predicted')
-#     plt.ylabel('True')
-#     plt.show()
+# 로지스틱 
+for C in C_values:
+    model = LogisticRegression(C=C, max_iter=1000)
+    model.fit(all_images, all_labels)
+    predictions = model.predict(x_test_data)
+    accuracy = accuracy_score(y_test_data, predictions)
+    accuracy_results["Logistic Regression"].append((C, accuracy))
+    print(accuracy_results)
+    cm = confusion_matrix(predictions, y_test_data)
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(f'Logistic Regression (C={C}) Confusion Matrix')
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.show()
 
 # 결정 트리
 # for depth in max_depths:
 #     model = DecisionTreeClassifier(max_depth=depth)
 #     model.fit(all_images, all_labels)
-#     predictions = model.predict(x_valid_data)
-#     accuracy = accuracy_score(y_valid_data, predictions)
+#     predictions = model.predict(x_test_data)
+#     accuracy = accuracy_score(y_test_data, predictions)
 #     accuracy_results["Decision Tree"].append((depth, accuracy))
 #     print(accuracy_results)
-#     cm = confusion_matrix(predictions, y_valid_data)
+#     cm = confusion_matrix(predictions, y_test_data)
 #     plt.figure(figsize=(10, 7))
 #     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
 #     plt.title(f'Decision Tree (max_depth={depth}) Confusion Matrix')
@@ -544,21 +543,21 @@ accuracy_results = {
 #     plt.ylabel('True')
 #     plt.show()
 
-# # MLP Classifier
-for hidden_layers in hidden_layer_sizes:
-    model = MLPClassifier(hidden_layer_sizes=hidden_layers, max_iter=1000)
-    model.fit(all_images, all_labels)
-    predictions = model.predict(x_valid_data)
-    accuracy = accuracy_score(y_valid_data, predictions)
-    accuracy_results["MLP Classifier"].append((hidden_layers, accuracy))
-    print(accuracy_results)
-    # cm = confusion_matrix(y_test_data, predictions)
-    # plt.figure(figsize=(10, 7))
-    # sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-    # plt.title(f'MLP Classifier (hidden_layers={hidden_layers}) Confusion Matrix')
-    # plt.xlabel('Predicted')
-    # plt.ylabel('True')
-    # plt.show()
+# # # MLP 
+# for hidden_layers in hidden_layer_sizes:
+#     model = MLPClassifier(hidden_layer_sizes=hidden_layers, max_iter=1000)
+#     model.fit(all_images, all_labels)
+#     predictions = model.predict(x_test_data)
+#     accuracy = accuracy_score(y_test_data, predictions)
+#     accuracy_results["MLP Classifier"].append((hidden_layers, accuracy))
+#     print(accuracy_results)
+#     cm = confusion_matrix(predictions, y_test_data)
+#     plt.figure(figsize=(10, 7))
+#     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+#     plt.title(f'MLP Classifier (hidden_layers={hidden_layers}) Confusion Matrix')
+#     plt.xlabel('Predicted')
+#     plt.ylabel('True')
+#     plt.show()
 
 # 정확도 그래프 그리기
 plt.figure(figsize=(15, 7))
@@ -576,8 +575,8 @@ plt.figure(figsize=(15, 7))
 # hidden_layer_vals, mlp_accuracies = zip(*accuracy_results["MLP Classifier"])
 # plt.plot(hidden_layer_strs, mlp_accuracies, marker='o', label='MLP Classifier')
 
-plt.xlabel('Hyperparameters')
-plt.ylabel('Accuracy')
-plt.title('Model Accuracy by Hyperparameter')
-plt.legend()
-plt.show()
+# plt.xlabel('Hyperparameters')
+# plt.ylabel('Accuracy')
+# plt.title('Model Accuracy by Hyperparameter')
+# plt.legend()
+# plt.show()
